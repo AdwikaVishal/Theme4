@@ -1,6 +1,7 @@
 from pydantic_settings import BaseSettings
 from typing import Optional, List, Union
 import json
+import re
 
 
 class Settings(BaseSettings):
@@ -22,9 +23,12 @@ class Settings(BaseSettings):
         "http://localhost:3000",
         "http://localhost:3001",
         "http://127.0.0.1:3000",
+        "https://theme4-liard.vercel.app",
         "https://theme4.vercel.app",
-        "https://*.vercel.app",
     ]
+
+    # Regex patterns for dynamic origins (e.g. Vercel preview deployments)
+    CORS_ORIGIN_REGEX: str = r"https://theme4.*\.vercel\.app"
 
     def get_cors_origins(self) -> List[str]:
         """Parse CORS_ORIGINS whether it's a JSON string or a list."""
