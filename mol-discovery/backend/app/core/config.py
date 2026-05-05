@@ -1,5 +1,6 @@
 from pydantic_settings import BaseSettings
-from typing import Optional, List
+from typing import Optional, List, Union
+import json
 
 
 class Settings(BaseSettings):
@@ -17,7 +18,16 @@ class Settings(BaseSettings):
     SECRET_KEY: str = "moldiscovery-secret-key-2026"
     MODEL_CACHE_PATH: str = "./models"
 
-    CORS_ORIGINS: List[str] = ["http://localhost:3000", "http://localhost:3001", "http://127.0.0.1:3000"]
+    CORS_ORIGINS: Union[List[str], str] = ["http://localhost:3000", "http://localhost:3001", "http://127.0.0.1:3000"]
+
+    def get_cors_origins(self) -> List[str]:
+        """Parse CORS_ORIGINS whether it's a JSON string or a list."""
+        if isinstance(self.CORS_ORIGINS, str):
+            try:
+                return json.loads(self.CORS_ORIGINS)
+            except Exception:
+                return [o.strip() for o in self.CORS_ORIGINS.split(",")]
+        return self.CORS_ORIGINS
 
     # External API keys — all optional; services fall back to synthetic data
     OPENAI_API_KEY: Optional[str] = None
