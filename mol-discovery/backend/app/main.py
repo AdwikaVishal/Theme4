@@ -82,7 +82,7 @@ async def lifespan(app: FastAPI):
     finally:
         db.close()
 
-    log.info("Startup complete. Docs: http://localhost:8000/docs")
+    log.info("Startup complete. Docs: https://theme4.onrender.com/docs")
     log.info("=" * 55)
 
     yield  # ── application runs ──

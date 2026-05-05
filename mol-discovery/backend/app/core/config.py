@@ -18,7 +18,13 @@ class Settings(BaseSettings):
     SECRET_KEY: str = "moldiscovery-secret-key-2026"
     MODEL_CACHE_PATH: str = "./models"
 
-    CORS_ORIGINS: Union[List[str], str] = ["http://localhost:3000", "http://localhost:3001", "http://127.0.0.1:3000"]
+    CORS_ORIGINS: Union[List[str], str] = [
+        "http://localhost:3000",
+        "http://localhost:3001",
+        "http://127.0.0.1:3000",
+        "https://theme4.vercel.app",
+        "https://*.vercel.app",
+    ]
 
     def get_cors_origins(self) -> List[str]:
         """Parse CORS_ORIGINS whether it's a JSON string or a list."""
