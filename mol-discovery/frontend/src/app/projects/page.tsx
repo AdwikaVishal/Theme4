@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react'
 import Link from 'next/link'
+import { useT } from '@/lib/i18n'
 
 interface Project {
   id: string
@@ -12,6 +13,7 @@ interface Project {
 }
 
 export default function ProjectsPage() {
+  const t = useT()
   const [projects, setProjects] = useState<Project[]>([])
   const [name, setName]         = useState('')
   const [reaction, setReaction] = useState('')
@@ -34,20 +36,18 @@ export default function ProjectsPage() {
   return (
     <div className="max-w-5xl mx-auto py-10 px-4 space-y-8">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Projects</h1>
-        <p className="text-gray-500 dark:text-gray-400 mt-1">
-          Organise discovery campaigns by project.
-        </p>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{t('projects.page_title')}</h1>
+        <p className="text-gray-500 dark:text-gray-400 mt-1">{t('projects.page_subtitle')}</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Create form */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md p-6">
-          <h2 className="text-lg font-bold mb-4 text-gray-900 dark:text-white">New Project</h2>
+          <h2 className="text-lg font-bold mb-4 text-gray-900 dark:text-white">{t('projects.new_project')}</h2>
           <form onSubmit={handleCreate} className="space-y-3">
             <div>
               <label className="block text-sm font-semibold mb-1 text-gray-700 dark:text-gray-300">
-                Project Name
+                {t('projects.project_name_label')}
               </label>
               <input
                 type="text"
@@ -61,7 +61,7 @@ export default function ProjectsPage() {
             </div>
             <div>
               <label className="block text-sm font-semibold mb-1 text-gray-700 dark:text-gray-300">
-                Target Reaction (optional)
+                {t('projects.target_reaction_label')}
               </label>
               <input
                 type="text"
@@ -77,7 +77,7 @@ export default function ProjectsPage() {
               className="w-full py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white
                          font-semibold text-sm transition-colors"
             >
-              Create Project
+              {t('projects.create_button')}
             </button>
           </form>
         </div>
@@ -87,12 +87,12 @@ export default function ProjectsPage() {
           {projects.length === 0 ? (
             <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md p-10 text-center text-gray-400">
               <div className="text-4xl mb-3">📁</div>
-              <p>No projects yet. Create one to organise your discovery runs.</p>
+              <p>{t('projects.no_projects')}</p>
               <Link
                 href="/discovery"
                 className="mt-4 inline-block text-sm text-blue-600 dark:text-blue-400 hover:underline"
               >
-                Or start a discovery run directly →
+                {t('projects.start_discovery')}
               </Link>
             </div>
           ) : (
@@ -110,7 +110,7 @@ export default function ProjectsPage() {
                     </div>
                   )}
                   <div className="text-xs text-gray-400 mt-1">
-                    Created {new Date(proj.created_at).toLocaleDateString()}
+                    {t('projects.created')} {new Date(proj.created_at).toLocaleDateString()}
                   </div>
                 </div>
                 <Link
@@ -119,7 +119,7 @@ export default function ProjectsPage() {
                              text-blue-700 dark:text-blue-300 text-sm font-semibold hover:bg-blue-100
                              dark:hover:bg-blue-900/50 transition-colors"
                 >
-                  Run Discovery
+                  {t('projects.run_discovery')}
                 </Link>
               </div>
             ))

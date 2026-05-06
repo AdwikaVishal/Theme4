@@ -14,6 +14,7 @@ import MutationHeatmap, { type LLRResult } from '@/components/MutationHeatmap'
 import PathwayMapViewer, { type FluxData } from '@/components/PathwayMapViewer'
 import GeneEditingViewer, { type GuideRNA } from '@/components/GeneEditingViewer'
 import ProteinViewer3D from '@/components/ProteinViewer3D'
+import { useT } from '@/lib/i18n'
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
@@ -24,6 +25,7 @@ const DEMO_SEQUENCE =
 type Tab = 'mutations' | 'pathway' | 'editing'
 
 export default function EnzymePage() {
+  const t = useT()
   const [tab, setTab] = useState<Tab>('mutations')
 
   // ── Mutation predictor state ──────────────────────────────────────────
@@ -34,18 +36,18 @@ export default function EnzymePage() {
   const [mutError, setMutError]     = useState('')
 
   // ── Pathway designer state ────────────────────────────────────────────
-  const [targetRxn, setTargetRxn]   = useState('EX_etoh_e')
-  const [koGenes, setKoGenes]       = useState('')
-  const [fluxData, setFluxData]     = useState<FluxData | null>(null)
+  const [targetRxn, setTargetRxn]     = useState('EX_etoh_e')
+  const [koGenes, setKoGenes]         = useState('')
+  const [fluxData, setFluxData]       = useState<FluxData | null>(null)
   const [fluxLoading, setFluxLoading] = useState(false)
-  const [fluxError, setFluxError]   = useState('')
+  const [fluxError, setFluxError]     = useState('')
 
   // ── Gene editing state ────────────────────────────────────────────────
-  const [targetGene, setTargetGene] = useState('adhE')
-  const [nGuides, setNGuides]       = useState(5)
-  const [guides, setGuides]         = useState<GuideRNA[]>([])
+  const [targetGene, setTargetGene]   = useState('adhE')
+  const [nGuides, setNGuides]         = useState(5)
+  const [guides, setGuides]           = useState<GuideRNA[]>([])
   const [grnaLoading, setGrnaLoading] = useState(false)
-  const [grnaError, setGrnaError]   = useState('')
+  const [grnaError, setGrnaError]     = useState('')
 
   // ── Handlers ─────────────────────────────────────────────────────────
 
@@ -139,7 +141,7 @@ export default function EnzymePage() {
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
           </svg>
-          Running…
+          {t('enzyme.running')}
         </span>
       ) : label}
     </button>
@@ -160,18 +162,18 @@ export default function EnzymePage() {
       {/* Page header */}
       <div>
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-          Enzyme Engineering
+          {t('enzyme.page_title')}
         </h1>
         <p className="text-gray-500 dark:text-gray-400 mt-1">
-          AI-assisted mutation prediction, metabolic pathway design, and CRISPR guide RNA generation.
+          {t('enzyme.page_subtitle')}
         </p>
       </div>
 
       {/* Tabs */}
       <div className="flex gap-2 bg-gray-100 dark:bg-gray-800 rounded-xl p-1 w-fit">
-        <TabBtn id="mutations" label="Mutation Predictor" />
-        <TabBtn id="pathway"   label="Pathway Designer" />
-        <TabBtn id="editing"   label="Gene Editing" />
+        <TabBtn id="mutations" label={t('enzyme.tab_mutations')} />
+        <TabBtn id="pathway"   label={t('enzyme.tab_pathway')} />
+        <TabBtn id="editing"   label={t('enzyme.tab_editing')} />
       </div>
 
       {/* ── Tab 1: Mutation Predictor ── */}
@@ -179,16 +181,15 @@ export default function EnzymePage() {
         <div className="space-y-6">
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md p-6 space-y-4">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-              LLR Mutation Scoring
+              {t('enzyme.llr_title')}
             </h2>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Uses ESM-2 masked marginals to score every possible single-point mutation.
-              Positive LLR = model considers the mutant more likely than wild-type.
+              {t('enzyme.llr_desc')}
             </p>
 
             <div>
               <label className="block text-sm font-semibold mb-1 text-gray-700 dark:text-gray-300">
-                Protein Sequence (single-letter AA codes)
+                {t('enzyme.sequence_label')}
               </label>
               <textarea
                 rows={4}
@@ -199,13 +200,13 @@ export default function EnzymePage() {
                 onChange={e => setSequence(e.target.value.toUpperCase().replace(/[^ACDEFGHIKLMNPQRSTVWY]/g, ''))}
                 placeholder="Paste amino-acid sequence…"
               />
-              <div className="text-xs text-gray-400 mt-1">{sequence.length} residues</div>
+              <div className="text-xs text-gray-400 mt-1">{sequence.length} {t('enzyme.residues')}</div>
             </div>
 
             <div className="flex items-center gap-4">
               <div>
                 <label className="block text-sm font-semibold mb-1 text-gray-700 dark:text-gray-300">
-                  Top-K suggestions
+                  {t('enzyme.top_k_label')}
                 </label>
                 <input
                   type="number" min={1} max={50}
@@ -216,7 +217,7 @@ export default function EnzymePage() {
                 />
               </div>
               <div className="pt-5">
-                <RunBtn onClick={handleSuggestMutations} loading={mutLoading} label="Suggest Mutations" />
+                <RunBtn onClick={handleSuggestMutations} loading={mutLoading} label={t('enzyme.suggest_button')} />
               </div>
             </div>
 
@@ -245,17 +246,16 @@ export default function EnzymePage() {
         <div className="space-y-6">
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md p-6 space-y-4">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-              Flux Balance Analysis
+              {t('enzyme.fba_title')}
             </h2>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Simulate metabolic flux under gene knockouts or overexpressions.
-              Uses COBRApy FBA (demo mode when model file is absent).
+              {t('enzyme.fba_desc')}
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-semibold mb-1 text-gray-700 dark:text-gray-300">
-                  Target Reaction ID
+                  {t('enzyme.target_reaction_label')}
                 </label>
                 <input
                   type="text"
@@ -268,7 +268,7 @@ export default function EnzymePage() {
               </div>
               <div>
                 <label className="block text-sm font-semibold mb-1 text-gray-700 dark:text-gray-300">
-                  Gene Knockouts (comma-separated)
+                  {t('enzyme.ko_genes_label')}
                 </label>
                 <input
                   type="text"
@@ -281,7 +281,7 @@ export default function EnzymePage() {
               </div>
             </div>
 
-            <RunBtn onClick={handleRunFBA} loading={fluxLoading} label="Run FBA" />
+            <RunBtn onClick={handleRunFBA} loading={fluxLoading} label={t('enzyme.run_fba_button')} />
             <ErrorBox msg={fluxError} />
           </div>
 
@@ -294,17 +294,16 @@ export default function EnzymePage() {
         <div className="space-y-6">
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md p-6 space-y-4">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-              CRISPR gRNA Design
+              {t('enzyme.crispr_title')}
             </h2>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              AI-predicted guide RNA sequences with on-target efficiency and off-target risk scores.
-              Integrates CRISPy / DeepCRISTL predictions when available.
+              {t('enzyme.crispr_desc')}
             </p>
 
             <div className="flex flex-wrap gap-4 items-end">
               <div>
                 <label className="block text-sm font-semibold mb-1 text-gray-700 dark:text-gray-300">
-                  Target Gene
+                  {t('enzyme.target_gene_label')}
                 </label>
                 <input
                   type="text"
@@ -317,7 +316,7 @@ export default function EnzymePage() {
               </div>
               <div>
                 <label className="block text-sm font-semibold mb-1 text-gray-700 dark:text-gray-300">
-                  Number of guides
+                  {t('enzyme.n_guides_label')}
                 </label>
                 <input
                   type="number" min={1} max={20}
@@ -327,7 +326,7 @@ export default function EnzymePage() {
                   onChange={e => setNGuides(Number(e.target.value))}
                 />
               </div>
-              <RunBtn onClick={handleDesignGrna} loading={grnaLoading} label="Design gRNAs" />
+              <RunBtn onClick={handleDesignGrna} loading={grnaLoading} label={t('enzyme.design_grna_button')} />
             </div>
 
             <ErrorBox msg={grnaError} />

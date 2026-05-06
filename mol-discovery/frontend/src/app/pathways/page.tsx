@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import { useT } from '@/lib/i18n'
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
@@ -9,15 +10,15 @@ const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 // ---------------------------------------------------------------------------
 
 interface EnzymeResult {
-  name:               string
-  ec_number:          string
-  organism:           string
-  thermostability:    number
-  activity:           number
-  km_mm:              number
-  kcat_per_s:         number
+  name:                string
+  ec_number:           string
+  organism:            string
+  thermostability:     number
+  activity:            number
+  km_mm:               number
+  kcat_per_s:          number
   suggested_mutations: string[]
-  notes:              string
+  notes:               string
 }
 
 interface Modification {
@@ -68,10 +69,10 @@ interface Organism {
 
 function ModBadge({ type }: { type: string }) {
   const styles: Record<string, string> = {
-    knockout:   'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300',
-    overexpress:'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
-    insert:     'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
-    crispr:     'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300',
+    knockout:    'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300',
+    overexpress: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
+    insert:      'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
+    crispr:      'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300',
   }
   return (
     <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${styles[type] ?? 'bg-gray-100 text-gray-600'}`}>
@@ -103,6 +104,7 @@ function ActivityDot({ value }: { value: number }) {
 // ---------------------------------------------------------------------------
 
 export default function PathwayDesignerPage() {
+  const t = useT()
   const [reaction, setReaction]   = useState('')
   const [organism, setOrganism]   = useState('')
   const [loading, setLoading]     = useState(false)
@@ -144,7 +146,7 @@ export default function PathwayDesignerPage() {
       setResult(await res.json())
       setActiveTab('enzymes')
     } catch (err: any) {
-      setError(err.message || 'Design failed')
+      setError(err.message || t('pathways.design_failed'))
     } finally {
       setLoading(false)
     }
@@ -177,11 +179,10 @@ export default function PathwayDesignerPage() {
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-          Metabolic Pathway Designer
+          {t('pathways.page_title')}
         </h1>
         <p className="text-gray-500 dark:text-gray-400 mt-1">
-          Design synthetic biology pathways for sustainable chemical production.
-          Select enzymes, microorganisms, and genetic modifications.
+          {t('pathways.page_subtitle')}
         </p>
       </div>
 
@@ -190,12 +191,12 @@ export default function PathwayDesignerPage() {
         <div className="lg:col-span-2 space-y-4">
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md p-6">
             <h2 className="text-lg font-bold mb-4 text-gray-900 dark:text-white">
-              Design Parameters
+              {t('pathways.design_parameters')}
             </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-semibold mb-1 text-gray-700 dark:text-gray-300">
-                  Target Reaction
+                  {t('pathways.target_reaction_label')}
                 </label>
                 <textarea
                   rows={2}
@@ -225,7 +226,7 @@ export default function PathwayDesignerPage() {
 
               <div>
                 <label className="block text-sm font-semibold mb-1 text-gray-700 dark:text-gray-300">
-                  Host Organism (optional)
+                  {t('pathways.organism_label')}
                 </label>
                 <select
                   value={organism}
@@ -234,7 +235,7 @@ export default function PathwayDesignerPage() {
                              bg-white dark:bg-gray-700 text-sm focus:ring-2 focus:ring-green-500
                              focus:outline-none"
                 >
-                  <option value="">Auto-select best organism</option>
+                  <option value="">{t('pathways.organism_auto')}</option>
                   {organisms.map(o => (
                     <option key={o.id} value={o.id}>{o.name}</option>
                   ))}
@@ -253,9 +254,9 @@ export default function PathwayDesignerPage() {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
                     </svg>
-                    Designing pathway…
+                    {t('pathways.designing')}
                   </span>
-                ) : 'Design Pathway'}
+                ) : t('pathways.design_button')}
               </button>
             </form>
 
@@ -272,7 +273,7 @@ export default function PathwayDesignerPage() {
           {pathwayTypes.length > 0 && (
             <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md p-5">
               <h3 className="text-sm font-bold mb-3 text-gray-700 dark:text-gray-300 uppercase tracking-wide">
-                Supported Pathways
+                {t('pathways.supported_pathways')}
               </h3>
               <ul className="space-y-1.5">
                 {pathwayTypes.map(pt => (
@@ -298,7 +299,7 @@ export default function PathwayDesignerPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1}
                   d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18" />
               </svg>
-              <p className="text-sm">Enter a target reaction to design a pathway</p>
+              <p className="text-sm">{t('pathways.enter_reaction_prompt')}</p>
             </div>
           )}
 
@@ -307,13 +308,13 @@ export default function PathwayDesignerPage() {
               {/* Summary cards */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {[
-                  { label: 'Predicted Yield', value: `${(result.predicted_yield * 100).toFixed(1)}%`,
+                  { label: t('pathways.predicted_yield'), value: `${(result.predicted_yield * 100).toFixed(1)}%`,
                     accent: 'text-green-600' },
-                  { label: 'Confidence',      value: `${(result.confidence_score * 100).toFixed(0)}%`,
+                  { label: t('pathways.confidence'),      value: `${(result.confidence_score * 100).toFixed(0)}%`,
                     accent: 'text-blue-600' },
-                  { label: 'Pathway Steps',   value: result.pathway_steps,
+                  { label: t('pathways.pathway_steps'),   value: result.pathway_steps,
                     accent: 'text-gray-900 dark:text-white' },
-                  { label: 'Bottlenecks',     value: result.bottlenecks.length,
+                  { label: t('pathways.bottlenecks'),     value: result.bottlenecks.length,
                     accent: result.bottlenecks.length > 0 ? 'text-orange-600' : 'text-green-600' },
                 ].map(({ label, value, accent }) => (
                   <div key={label} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4">
@@ -328,7 +329,7 @@ export default function PathwayDesignerPage() {
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <div className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">
-                      Recommended Host Organism
+                      {t('pathways.recommended_organism')}
                     </div>
                     <div className="font-bold text-gray-900 dark:text-white text-lg">
                       {result.recommended_microorganism}
@@ -353,9 +354,9 @@ export default function PathwayDesignerPage() {
 
               {/* Tabs */}
               <div className="flex gap-2 bg-gray-100 dark:bg-gray-800 rounded-xl p-1 w-fit">
-                <TabBtn id="enzymes"       label={`Enzymes (${result.enzymes.length})`} />
-                <TabBtn id="modifications" label={`Modifications (${result.genetic_modifications.length})`} />
-                <TabBtn id="flux"          label="Flux" />
+                <TabBtn id="enzymes"       label={`${t('pathways.enzymes_title')} (${result.enzymes.length})`} />
+                <TabBtn id="modifications" label={`${t('pathways.modifications_title')} (${result.genetic_modifications.length})`} />
+                <TabBtn id="flux"          label={t('pathways.flux_title')} />
               </div>
 
               {/* Enzymes tab */}
@@ -364,11 +365,11 @@ export default function PathwayDesignerPage() {
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
-                        <th className="px-4 py-3 text-left font-semibold">Enzyme</th>
-                        <th className="px-4 py-3 text-left font-semibold">EC</th>
-                        <th className="px-4 py-3 text-left font-semibold">Activity</th>
-                        <th className="px-4 py-3 text-left font-semibold">kcat (s⁻¹)</th>
-                        <th className="px-4 py-3 text-left font-semibold">Mutations</th>
+                        <th className="px-4 py-3 text-left font-semibold">{t('pathways.enzyme_col')}</th>
+                        <th className="px-4 py-3 text-left font-semibold">{t('pathways.ec_col')}</th>
+                        <th className="px-4 py-3 text-left font-semibold">{t('pathways.activity_col')}</th>
+                        <th className="px-4 py-3 text-left font-semibold">{t('pathways.kcat_col')}</th>
+                        <th className="px-4 py-3 text-left font-semibold">{t('pathways.mutations_col')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -416,7 +417,7 @@ export default function PathwayDesignerPage() {
                   {result.bottlenecks.length > 0 && (
                     <div className="border-t border-gray-100 dark:border-gray-700 p-4">
                       <div className="text-sm font-semibold text-orange-600 dark:text-orange-400 mb-2">
-                        Rate-Limiting Steps
+                        {t('pathways.rate_limiting')}
                       </div>
                       <div className="space-y-2">
                         {result.bottlenecks.map((b, i) => (
@@ -445,7 +446,7 @@ export default function PathwayDesignerPage() {
               {activeTab === 'modifications' && (
                 <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md p-5 space-y-3">
                   {result.genetic_modifications.length === 0 ? (
-                    <p className="text-gray-400 text-sm">No modifications recommended.</p>
+                    <p className="text-gray-400 text-sm">{t('pathways.no_modifications')}</p>
                   ) : (
                     result.genetic_modifications.map((mod, i) => (
                       <div key={i}
@@ -478,7 +479,7 @@ export default function PathwayDesignerPage() {
               {activeTab === 'flux' && (
                 <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md p-5">
                   <h3 className="font-bold mb-4 text-gray-900 dark:text-white">
-                    Flux Distribution
+                    {t('pathways.flux_title')}
                   </h3>
                   <div className="space-y-2">
                     {Object.entries(result.flux_distribution).map(([step, flux]) => (

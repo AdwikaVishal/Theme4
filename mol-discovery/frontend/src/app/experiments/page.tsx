@@ -3,6 +3,7 @@
 import React, { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { api } from '@/services/api'
+import { useT } from '@/lib/i18n'
 
 interface ExperimentEntry {
   candidate_id: string
@@ -22,6 +23,7 @@ interface LoggedResult {
 }
 
 function ExperimentsContent() {
+  const t = useT()
   const params = useSearchParams()
   const prefillId   = params.get('candidate_id') || ''
   const prefillName = params.get('name') || ''
@@ -36,11 +38,11 @@ function ExperimentsContent() {
     pressure:       '1',
     researcher:     '',
   })
-  const [csvFile, setCsvFile]     = useState<File | null>(null)
+  const [csvFile, setCsvFile]       = useState<File | null>(null)
   const [submitting, setSubmitting] = useState(false)
-  const [success, setSuccess]     = useState<LoggedResult | null>(null)
-  const [error, setError]         = useState('')
-  const [history, setHistory]     = useState<LoggedResult[]>([])
+  const [success, setSuccess]       = useState<LoggedResult | null>(null)
+  const [error, setError]           = useState('')
+  const [history, setHistory]       = useState<LoggedResult[]>([])
 
   // Update form if URL params change (e.g. navigating from discovery page)
   useEffect(() => {
@@ -50,7 +52,7 @@ function ExperimentsContent() {
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!form.candidate_id || !form.activity) {
-      setError('Candidate ID and Activity are required.')
+      setError(t('experiments.error_required'))
       return
     }
     setSubmitting(true)
@@ -67,9 +69,9 @@ function ExperimentsContent() {
         researcher:   form.researcher || 'unknown',
       })
       const result: LoggedResult = {
-        experiment_id:   res.experiment_id || '',
-        discrepancy:     res.discrepancy   || 0,
-        needs_retraining: (res.discrepancy || 0) > 0.2,
+        experiment_id:    res.experiment_id || '',
+        discrepancy:      res.discrepancy   || 0,
+        needs_retraining: (res.discrepancy  || 0) > 0.2,
       }
       setSuccess(result)
       setHistory(h => [result, ...h])
@@ -83,15 +85,15 @@ function ExperimentsContent() {
 
   const handleCsvUpload = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!csvFile) { setError('Select a CSV file first.'); return }
+    if (!csvFile) { setError(t('experiments.error_select_csv')); return }
     setSubmitting(true)
     setError('')
     setSuccess(null)
     try {
       const res = await api.logExperimentCSV(csvFile)
       setSuccess({
-        experiment_id:   `${res.experiments_logged} experiments`,
-        discrepancy:     0,
+        experiment_id:    `${res.experiments_logged} experiments`,
+        discrepancy:      0,
         needs_retraining: false,
       })
       setCsvFile(null)
@@ -105,30 +107,39 @@ function ExperimentsContent() {
   const discrepancyColor = (d: number) =>
     d > 0.3 ? 'text-red-600' : d > 0.15 ? 'text-yellow-600' : 'text-green-600'
 
+  const FIELDS = [
+    { key: 'activity',    label: t('experiments.activity_label'),    type: 'number', step: '0.01', required: true  },
+    { key: 'selectivity', label: t('experiments.selectivity_label'), type: 'number', step: '0.01', required: false },
+    { key: 'stability',   label: t('experiments.stability_label'),   type: 'number', step: '1',    required: false },
+    { key: 'temperature', label: t('experiments.temperature_label'), type: 'number', step: '1',    required: false },
+    { key: 'pressure',    label: t('experiments.pressure_label'),    type: 'number', step: '0.1',  required: false },
+    { key: 'researcher',  label: t('experiments.researcher_label'),  type: 'text',   step: '',     required: false },
+  ]
+
   return (
     <div className="max-w-6xl mx-auto py-10 px-4 space-y-8">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Experiment Logger</h1>
-        <p className="text-gray-500 dark:text-gray-400 mt-1">
-          Log lab results to compare with AI predictions and improve the model.
-        </p>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{t('experiments.page_title')}</h1>
+        <p className="text-gray-500 dark:text-gray-400 mt-1">{t('experiments.page_subtitle')}</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* ── Manual entry ── */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md p-6">
-          <h2 className="text-xl font-bold mb-5 text-gray-900 dark:text-white">Log Single Result</h2>
+          <h2 className="text-xl font-bold mb-5 text-gray-900 dark:text-white">
+            {t('experiments.log_single_result')}
+          </h2>
 
           {success && (
             <div className="mb-4 bg-green-50 dark:bg-green-900/30 border border-green-300
                             dark:border-green-700 rounded-lg p-4 text-sm">
               <div className="font-semibold text-green-800 dark:text-green-200">
-                Logged: {success.experiment_id}
+                {t('experiments.logged_prefix')} {success.experiment_id}
               </div>
               <div className={`mt-1 ${discrepancyColor(success.discrepancy)}`}>
-                Discrepancy vs prediction: {(success.discrepancy * 100).toFixed(1)}%
+                {t('experiments.discrepancy_label')} {(success.discrepancy * 100).toFixed(1)}%
                 {success.needs_retraining && (
-                  <span className="ml-2 font-semibold">&mdash; retraining recommended</span>
+                  <span className="ml-2 font-semibold">&mdash; {t('experiments.retraining_needed')}</span>
                 )}
               </div>
             </div>
@@ -145,7 +156,7 @@ function ExperimentsContent() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="sm:col-span-2">
                 <label className="block text-sm font-semibold mb-1 text-gray-700 dark:text-gray-300">
-                  Candidate ID *
+                  {t('experiments.candidate_id_label')}
                 </label>
                 <input
                   type="text"
@@ -161,14 +172,7 @@ function ExperimentsContent() {
                 )}
               </div>
 
-              {[
-                { key: 'activity',    label: 'Activity (mol/g/h) *', type: 'number', step: '0.01', required: true },
-                { key: 'selectivity', label: 'Selectivity (0–1)',     type: 'number', step: '0.01', required: false },
-                { key: 'stability',   label: 'Stability (hours)',      type: 'number', step: '1',    required: false },
-                { key: 'temperature', label: 'Temperature (°C)',       type: 'number', step: '1',    required: false },
-                { key: 'pressure',    label: 'Pressure (bar)',         type: 'number', step: '0.1',  required: false },
-                { key: 'researcher',  label: 'Researcher',             type: 'text',   step: '',     required: false },
-              ].map(({ key, label, type, step, required }) => (
+              {FIELDS.map(({ key, label, type, step, required }) => (
                 <div key={key}>
                   <label className="block text-sm font-semibold mb-1 text-gray-700 dark:text-gray-300">
                     {label}
@@ -192,7 +196,7 @@ function ExperimentsContent() {
               className="w-full py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white
                          font-semibold text-sm disabled:opacity-50 transition-colors"
             >
-              {submitting ? 'Logging…' : 'Log Experiment'}
+              {submitting ? t('experiments.submitting') : t('experiments.submit_button')}
             </button>
           </form>
         </div>
@@ -200,9 +204,12 @@ function ExperimentsContent() {
         {/* ── CSV upload + history ── */}
         <div className="space-y-6">
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md p-6">
-            <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Bulk CSV Upload</h2>
+            <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">
+              {t('experiments.bulk_csv_upload')}
+            </h2>
             <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-              CSV columns: <code className="bg-gray-100 dark:bg-gray-700 px-1 rounded">
+              {t('experiments.csv_columns_hint')}{' '}
+              <code className="bg-gray-100 dark:bg-gray-700 px-1 rounded">
                 candidate_id, activity, selectivity, stability, temperature, pressure, researcher
               </code>
             </p>
@@ -222,7 +229,7 @@ function ExperimentsContent() {
                 className="w-full py-2.5 rounded-lg bg-green-600 hover:bg-green-700 text-white
                            font-semibold text-sm disabled:opacity-50 transition-colors"
               >
-                {submitting ? 'Uploading…' : 'Upload CSV'}
+                {submitting ? t('experiments.uploading') : t('experiments.upload_button')}
               </button>
             </form>
 
@@ -238,15 +245,17 @@ function ExperimentsContent() {
               }}
               className="mt-3 text-xs text-blue-600 dark:text-blue-400 hover:underline"
             >
-              Download sample CSV template
+              {t('experiments.download_sample')}
             </button>
           </div>
 
           {/* Session history */}
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md p-6">
-            <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Session Log</h2>
+            <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">
+              {t('experiments.session_log')}
+            </h2>
             {history.length === 0 ? (
-              <p className="text-sm text-gray-400">No experiments logged this session.</p>
+              <p className="text-sm text-gray-400">{t('experiments.no_experiments')}</p>
             ) : (
               <div className="space-y-2">
                 {history.map((h, i) => (

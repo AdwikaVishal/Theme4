@@ -1,0 +1,2 @@
+[nbdev]
+sarvamai = sarvamai._modidx:d

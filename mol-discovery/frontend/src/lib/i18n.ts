@@ -4,17 +4,18 @@
  * Uses Zustand (already installed) + the JSON message files.
  * Usage:
  *   const t = useT()
- *   t('nav.discovery')          // → "Discovery" | "ಶೋಧನೆ"
+ *   t('nav.discovery')          // → "Discovery" | "ಶೋಧನೆ" | "खोज"
  *   t('discovery.found_candidates', { count: 5 })
  */
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import en from '../../messages/en.json'
 import kn from '../../messages/kn.json'
+import hi from '../../messages/hi.json'
 
-export type Locale = 'en' | 'kn'
+export type Locale = 'en' | 'kn' | 'hi'
 
-const messages: Record<Locale, Record<string, unknown>> = { en, kn }
+const messages: Record<Locale, Record<string, unknown>> = { en, kn, hi }
 
 /** Resolve a dot-path key like "nav.discovery" */
 function resolve(obj: Record<string, unknown>, key: string): string {

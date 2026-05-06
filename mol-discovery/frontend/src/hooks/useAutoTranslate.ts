@@ -3,12 +3,12 @@
  * useAutoTranslate
  * ----------------
  * Re-runs the DOM translation pass whenever the pathname changes
- * (i.e. the user navigates to a new page) AND the locale is 'kn'.
+ * (i.e. the user navigates to a new page) AND the locale is non-English.
  *
  * Works with Next.js App Router — uses usePathname() instead of the
  * Pages-Router-only router.events API.
  *
- * Strategy (same as LanguageToggle):
+ * Strategy:
  *  1. Walk text nodes that still contain Latin characters.
  *  2. POST to /api/translate/page-batch (glossary + Sarvam, one call per chunk).
  *  3. Write translations back in-place; mark parents data-translated="true".
@@ -23,7 +23,12 @@ import { useI18nStore } from '@/lib/i18n'
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 const LATIN = /[a-zA-Z]{2,}/
 
-async function translateDom() {
+const LOCALE_TARGET: Record<string, string> = {
+  kn: 'kn-IN',
+  hi: 'hi-IN',
+}
+
+async function translateDom(targetLocale: string) {
   // Collect text nodes that still have Latin content
   const nodes: Text[] = []
   const walker = document.createTreeWalker(
@@ -53,7 +58,7 @@ async function translateDom() {
     const res = await fetch(`${API_BASE}/api/translate/page-batch`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ texts, source: 'en-IN', target: 'kn-IN' }),
+      body: JSON.stringify({ texts, source: 'en-IN', target: targetLocale }),
     })
     if (!res.ok) return
 
@@ -65,7 +70,7 @@ async function translateDom() {
       }
     })
   } catch {
-    // Non-fatal — static strings from the JSON files are already in Kannada
+    // Non-fatal — static strings from the JSON files are already translated
   }
 }
 
@@ -76,13 +81,14 @@ export function useAutoTranslate() {
   const inFlight = useRef(false)
 
   useEffect(() => {
-    if (locale !== 'kn') return
+    const target = LOCALE_TARGET[locale]
+    if (!target) return  // English — nothing to do
     if (inFlight.current) return
 
     inFlight.current = true
     // Small delay — let React finish painting the new route
     const id = setTimeout(async () => {
-      await translateDom()
+      await translateDom(target)
       inFlight.current = false
     }, 120)
 
@@ -90,5 +96,5 @@ export function useAutoTranslate() {
       clearTimeout(id)
       inFlight.current = false
     }
-  }, [locale, pathname]) // re-runs on every navigation while in Kannada mode
+  }, [locale, pathname]) // re-runs on every navigation while in a non-English locale
 }

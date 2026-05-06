@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react'
 import { api, type ModelHealth } from '@/services/api'
+import { useT } from '@/lib/i18n'
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
@@ -96,16 +97,17 @@ function PsiBar({ psi, label }: { psi: number; label: string }) {
 // ---------------------------------------------------------------------------
 
 export default function ModelsPage() {
+  const t = useT()
   const [health, setHealth]         = useState<ModelHealth | null>(null)
   const [loading, setLoading]       = useState(true)
   const [retraining, setRetraining] = useState(false)
   const [retrained, setRetrained]   = useState<string | null>(null)
   const [error, setError]           = useState('')
 
-  const [drift, setDrift]           = useState<DriftReport | null>(null)
+  const [drift, setDrift]               = useState<DriftReport | null>(null)
   const [driftLoading, setDriftLoading] = useState(false)
 
-  const [versions, setVersions]     = useState<ModelVersion[]>([])
+  const [versions, setVersions]               = useState<ModelVersion[]>([])
   const [versionsLoading, setVersionsLoading] = useState(false)
 
   const [tab, setTab] = useState<'health' | 'drift' | 'versions'>('health')
@@ -205,7 +207,7 @@ export default function ModelsPage() {
           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
         </svg>
-        Loading model health…
+        {t('models.loading')}
       </div>
     )
   }
@@ -231,15 +233,13 @@ export default function ModelsPage() {
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Model Health</h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-1">
-            Monitor accuracy, detect data drift, and manage active learning.
-          </p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{t('models.page_title')}</h1>
+          <p className="text-gray-500 dark:text-gray-400 mt-1">{t('models.page_subtitle')}</p>
         </div>
         <button onClick={fetchHealth}
           className="text-sm px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600
                      hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-          Refresh
+          {t('models.refresh')}
         </button>
       </div>
 
@@ -259,15 +259,15 @@ export default function ModelsPage() {
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
           </svg>
-          <span>Retraining in progress — page refreshes automatically every 3 s.</span>
+          <span>{t('models.retraining_in_progress')}</span>
         </div>
       )}
 
       {/* Tabs */}
       <div className="flex gap-2 bg-gray-100 dark:bg-gray-800 rounded-xl p-1 w-fit">
-        <TabBtn id="health"   label="Health" />
-        <TabBtn id="drift"    label="Drift Report" />
-        <TabBtn id="versions" label="Version History" />
+        <TabBtn id="health"   label={t('models.tab_health')} />
+        <TabBtn id="drift"    label={t('models.tab_drift')} />
+        <TabBtn id="versions" label={t('models.tab_versions')} />
       </div>
 
       {/* ── Tab: Health ── */}
@@ -275,18 +275,26 @@ export default function ModelsPage() {
         <div className="space-y-6">
           {/* KPI cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <StatCard label="Overall Accuracy" value={`${accuracy.toFixed(1)}%`} accent={accuracyColor} />
-            <StatCard label="Experiments" value={health?.experiment_count ?? 0} sub="total logged" />
             <StatCard
-              label="Discrepancies"
+              label={t('models.overall_accuracy')}
+              value={`${accuracy.toFixed(1)}%`}
+              accent={accuracyColor}
+            />
+            <StatCard
+              label={t('models.experiments_count')}
+              value={health?.experiment_count ?? 0}
+              sub={t('models.total_logged')}
+            />
+            <StatCard
+              label={t('models.discrepancies')}
               value={health?.total_discrepancies ?? 0}
-              sub={`avg ${health?.average_error?.toFixed(1) ?? 0}% error`}
+              sub={t('models.avg_error', { value: health?.average_error?.toFixed(1) ?? '0' })}
               accent={(health?.total_discrepancies ?? 0) > 5 ? 'text-yellow-600' : undefined}
             />
             <StatCard
-              label="Pending"
+              label={t('models.pending')}
               value={health?.pending_experiments ?? 0}
-              sub={health?.retraining_ready ? 'Retraining recommended' : 'No action needed'}
+              sub={health?.retraining_ready ? t('models.retraining_recommended') : t('models.no_action_needed')}
               accent={health?.retraining_ready ? 'text-orange-600' : undefined}
             />
           </div>
@@ -295,18 +303,18 @@ export default function ModelsPage() {
           {(health?.model_version || health?.val_mae != null) && (
             <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md p-5">
               <h2 className="text-lg font-bold mb-3 text-gray-900 dark:text-white">
-                Current Model
+                {t('models.current_model')}
               </h2>
               <div className="grid grid-cols-3 gap-4 text-sm">
                 <div>
-                  <div className="text-gray-500 dark:text-gray-400">Version</div>
+                  <div className="text-gray-500 dark:text-gray-400">{t('models.version')}</div>
                   <div className="font-mono font-semibold text-gray-900 dark:text-white mt-0.5">
                     {health?.model_version ?? 'demo_v1'}
                   </div>
                 </div>
                 {health?.val_mae != null && (
                   <div>
-                    <div className="text-gray-500 dark:text-gray-400">Val MAE</div>
+                    <div className="text-gray-500 dark:text-gray-400">{t('models.val_mae')}</div>
                     <div className="font-semibold text-gray-900 dark:text-white mt-0.5">
                       {health.val_mae.toFixed(4)}
                     </div>
@@ -314,7 +322,7 @@ export default function ModelsPage() {
                 )}
                 {health?.val_r2 != null && (
                   <div>
-                    <div className="text-gray-500 dark:text-gray-400">Val R²</div>
+                    <div className="text-gray-500 dark:text-gray-400">{t('models.val_r2')}</div>
                     <div className="font-semibold text-gray-900 dark:text-white mt-0.5">
                       {health.val_r2.toFixed(4)}
                     </div>
@@ -326,11 +334,13 @@ export default function ModelsPage() {
 
           {/* Accuracy bars */}
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md p-6 space-y-4">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Prediction Accuracy</h2>
-            <MetricBar label="Overall accuracy" value={accuracy} color="bg-blue-500" />
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+              {t('models.prediction_accuracy')}
+            </h2>
+            <MetricBar label={t('models.overall_accuracy_label')} value={accuracy} color="bg-blue-500" />
             {health?.max_error != null && (
               <MetricBar
-                label={`Max single error (${health.max_error.toFixed(1)}%)`}
+                label={t('models.max_error_label', { value: health.max_error.toFixed(1) })}
                 value={Math.min(100, health.max_error)}
                 color="bg-red-400"
               />
@@ -341,7 +351,7 @@ export default function ModelsPage() {
           {health?.family_performance && Object.keys(health.family_performance).length > 0 && (
             <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md p-6">
               <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">
-                Performance by Catalyst Family
+                {t('models.performance_by_family')}
               </h2>
               <div className="space-y-3">
                 {Object.entries(health.family_performance).map(([family, data]) => {
@@ -349,7 +359,7 @@ export default function ModelsPage() {
                   return (
                     <MetricBar
                       key={family}
-                      label={`${family} (${typeof data === 'object' ? (data as any).samples : '?'} samples)`}
+                      label={`${family} (${typeof data === 'object' ? (data as any).samples : '?'} ${t('models.samples').toLowerCase()})`}
                       value={acc}
                       color="bg-purple-500"
                     />
@@ -361,17 +371,16 @@ export default function ModelsPage() {
 
           {/* Retraining panel */}
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md p-6 space-y-4">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Active Learning</h2>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white">{t('models.active_learning')}</h2>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Fine-tunes the GNN on your latest experimental data with validation gating —
-              new weights are only promoted if validation MAE improves.
+              {t('models.active_learning_desc')}
             </p>
 
             {health?.retraining_ready && (
               <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-300
                               dark:border-orange-700 rounded-lg px-4 py-3 text-sm
                               text-orange-800 dark:text-orange-200 font-medium">
-                {health.pending_experiments} unanalyzed experiments — retraining recommended.
+                {t('models.unanalyzed_experiments', { count: health.pending_experiments ?? 0 })}
               </div>
             )}
 
@@ -396,9 +405,9 @@ export default function ModelsPage() {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
                     </svg>
-                    Retraining…
+                    {t('models.retraining')}
                   </span>
-                ) : 'Retrain Now'}
+                ) : t('models.retrain_now')}
               </button>
               <button
                 onClick={() => handleRetrain(true)}
@@ -407,7 +416,7 @@ export default function ModelsPage() {
                            dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20
                            font-semibold text-sm disabled:opacity-50 transition-colors"
               >
-                Retrain in Background
+                {t('models.retrain_background')}
               </button>
             </div>
           </div>
@@ -418,11 +427,11 @@ export default function ModelsPage() {
       {tab === 'drift' && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Data Drift Report</h2>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white">{t('models.drift_title')}</h2>
             <button onClick={fetchDrift} disabled={driftLoading}
               className="text-sm px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600
                          hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 transition-colors">
-              {driftLoading ? 'Checking…' : 'Refresh'}
+              {driftLoading ? t('models.drift_checking') : t('models.refresh')}
             </button>
           </div>
 
@@ -432,7 +441,7 @@ export default function ModelsPage() {
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
               </svg>
-              Analysing distributions…
+              {t('models.drift_analysing')}
             </div>
           )}
 
@@ -457,10 +466,8 @@ export default function ModelsPage() {
 
               {/* Per-feature PSI bars */}
               <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md p-6 space-y-3">
-                <h3 className="font-bold text-gray-900 dark:text-white">Feature Drift (PSI)</h3>
-                <div className="text-xs text-gray-400 mb-2">
-                  PSI &lt; 0.10 = stable · 0.10–0.20 = moderate · &gt; 0.20 = significant
-                </div>
+                <h3 className="font-bold text-gray-900 dark:text-white">{t('models.feature_drift')}</h3>
+                <div className="text-xs text-gray-400 mb-2">{t('models.psi_legend')}</div>
                 {Object.entries(drift.features).map(([feat, rep]) => (
                   <div key={feat}>
                     <PsiBar psi={rep.psi} label={feat} />
@@ -476,7 +483,7 @@ export default function ModelsPage() {
               {/* Suggestions */}
               {drift.suggestions.length > 0 && (
                 <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md p-6">
-                  <h3 className="font-bold mb-3 text-gray-900 dark:text-white">Recommendations</h3>
+                  <h3 className="font-bold mb-3 text-gray-900 dark:text-white">{t('models.recommendations')}</h3>
                   <ul className="space-y-2">
                     {drift.suggestions.map((s, i) => (
                       <li key={i} className="flex gap-2 text-sm text-gray-600 dark:text-gray-400">
@@ -495,7 +502,7 @@ export default function ModelsPage() {
       {/* ── Tab: Versions ── */}
       {tab === 'versions' && (
         <div className="space-y-4">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white">Model Version History</h2>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white">{t('models.versions_title')}</h2>
 
           {versionsLoading && (
             <div className="flex items-center justify-center h-32 text-gray-400 gap-2">
@@ -503,13 +510,13 @@ export default function ModelsPage() {
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
               </svg>
-              Loading…
+              {t('models.versions_loading')}
             </div>
           )}
 
           {!versionsLoading && versions.length === 0 && (
             <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md p-8 text-center text-gray-400">
-              No model versions recorded yet. Trigger retraining to create the first entry.
+              {t('models.versions_empty')}
             </div>
           )}
 
@@ -518,12 +525,12 @@ export default function ModelsPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
-                    <th className="px-4 py-3 text-left font-semibold">Version</th>
-                    <th className="px-4 py-3 text-left font-semibold">Samples</th>
-                    <th className="px-4 py-3 text-left font-semibold">Val MAE</th>
-                    <th className="px-4 py-3 text-left font-semibold">Val R²</th>
-                    <th className="px-4 py-3 text-left font-semibold">Status</th>
-                    <th className="px-4 py-3 text-left font-semibold">Date</th>
+                    <th className="px-4 py-3 text-left font-semibold">{t('models.version')}</th>
+                    <th className="px-4 py-3 text-left font-semibold">{t('models.samples')}</th>
+                    <th className="px-4 py-3 text-left font-semibold">{t('models.val_mae')}</th>
+                    <th className="px-4 py-3 text-left font-semibold">{t('models.val_r2')}</th>
+                    <th className="px-4 py-3 text-left font-semibold">{t('models.status')}</th>
+                    <th className="px-4 py-3 text-left font-semibold">{t('models.date')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -546,10 +553,10 @@ export default function ModelsPage() {
                         {v.is_production ? (
                           <span className="px-2 py-0.5 bg-green-100 dark:bg-green-900/30
                                            text-green-700 dark:text-green-300 rounded-full text-xs font-semibold">
-                            production
+                            {t('models.production')}
                           </span>
                         ) : (
-                          <span className="text-gray-400 text-xs">archived</span>
+                          <span className="text-gray-400 text-xs">{t('models.archived')}</span>
                         )}
                       </td>
                       <td className="px-4 py-3 text-gray-400 text-xs">
